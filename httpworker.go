@@ -34,7 +34,7 @@ type Worker struct {
 
 // New creates a new Worker with the provided logger and options.
 func New(logger *zap.Logger, opts ...Option) *Worker {
-	w := &Worker{
+	w := Worker{
 		logger:             logger,
 		addr:               defaultAddr,
 		router:             router.New(),
@@ -44,14 +44,14 @@ func New(logger *zap.Logger, opts ...Option) *Worker {
 	w.setupLivenessCheckRoute()
 
 	for _, opt := range opts {
-		opt(w)
+		opt(&w)
 	}
 
 	w.server = &http.Server{
 		Addr:    w.addr,
 		Handler: w.router,
 	}
-	return w
+	return &w
 }
 
 func (w *Worker) Init(logger *zap.Logger) error {
