@@ -13,24 +13,52 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	w := New(zap.NewNop())
 
-	require.NotNil(t, w)
+	t.Run("with default values", func(t *testing.T) {
+		t.Parallel()
 
-	assert.NotNil(t, w.logger)
-	assert.NotNil(t, w.router)
-	assert.NotNil(t, w.server)
-	assert.Equal(t, defaultAddr, w.addr)
-	assert.Equal(t, defaultAddr, w.server.Addr)
-	assert.Equal(t, defaultShudownCtx, w.shutdownTimeoutCtx)
+		w := New(zap.NewNop())
 
-	// Check if the liveness check route was added.
+		require.NotNil(t, w)
 
-	req := httptest.NewRequest(http.MethodGet, aliveCheckRoute, nil)
-	rr := httptest.NewRecorder()
-	w.router.ServeHTTP(rr, req)
+		assert.NotNil(t, w.logger)
+		assert.NotNil(t, w.router)
+		assert.NotNil(t, w.server)
+		assert.Equal(t, defaultAddr, w.addr)
+		assert.Equal(t, defaultAddr, w.server.Addr)
+		assert.Equal(t, defaultShudownCtx, w.shutdownTimeoutCtx)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+		// Check if the liveness check route was added.
+
+		req := httptest.NewRequest(http.MethodGet, aliveCheckRoute, nil)
+		rr := httptest.NewRecorder()
+		w.router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+	})
+
+	t.Run("with option", func(t *testing.T) {
+		t.Parallel()
+
+		givenOptAddr := ":5001"
+
+		w := New(zap.NewNop(), WithAddress(givenOptAddr))
+
+		require.NotNil(t, w)
+
+		assert.NotNil(t, w.logger)
+		assert.NotNil(t, w.router)
+		assert.NotNil(t, w.server)
+		assert.Equal(t, givenOptAddr, w.addr)
+		assert.Equal(t, givenOptAddr, w.server.Addr)
+		assert.Equal(t, defaultShudownCtx, w.shutdownTimeoutCtx)
+
+		req := httptest.NewRequest(http.MethodGet, aliveCheckRoute, nil)
+		rr := httptest.NewRecorder()
+		w.router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+	})
 }
 
 func TestInit(t *testing.T) {
